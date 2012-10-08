@@ -11,8 +11,14 @@ app.configure(function(){
 
 // Routes
 
-app.get('/', function (req, res, next) {
+app.get("/", function (req, res, next) {
     res.redirect("index.html");
+});
+
+app.all("/delred", function (req, res, next) {
+    if (req.method === "DELETE") res.send({ ok: true });
+    else res.send({ error: "Method was " + req.method });
+    
 });
 
 app.listen(3000, function(){
