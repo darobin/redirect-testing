@@ -9,16 +9,16 @@ app.configure(function(){
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
-// Routes
-
-app.get("/", function (req, res, next) {
-    res.redirect("index.html");
+app.all("/delred", function (req, res, next) {
+    console.log("Got request = " + req.method);
+    if (req.method === "DELETE") res.redirect("/delred2");
+    else res.send({ error: "Method was " + req.method });
 });
 
-app.all("/delred", function (req, res, next) {
+app.all("/delred2", function (req, res, next) {
+    console.log("Got request2 = " + req.method);
     if (req.method === "DELETE") res.send({ ok: true });
-    else res.send({ error: "Method was " + req.method });
-    
+    else res.send({ error: "Method was " + req.method + " after redirect" });
 });
 
 app.listen(3000, function(){
