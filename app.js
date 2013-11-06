@@ -1,26 +1,43 @@
 var express = require('express')
+,   app = express()
 ;
 
-var app = module.exports = express.createServer();
 app.configure(function(){
-    app.use(express.bodyParser());
     app.use(app.router);
     app.use(express["static"](__dirname + "/public"));
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
-app.all("/delred", function (req, res, next) {
-    console.log("Got request = " + req.method);
-    if (req.method === "DELETE") res.redirect("/delred2");
-    else res.send({ error: "Method was " + req.method });
-});
+var codes = [301, 302, 303, 307, 308]
+,   methods = "GET HEAD POST PUT DELETE".split(" ")
+;
 
-app.all("/delred2", function (req, res, next) {
-    console.log("Got request2 = " + req.method);
-    if (req.method === "DELETE") res.send({ ok: true });
-    else res.send({ error: "Method was " + req.method + " after redirect" });
-});
+function endpoint (code, method) {
+    var path = "/" + method + "-" + code
+    ,   redirect = path + "-redirect"
+    ;
+    app.all(path, function (req, res) {
+        console.log("Got " + path + " with method " + req.method + " sending " + code);
+        res.set("Location", redirect);
+        res.send(code, { to: redirect });
+    });
+    app.all(redirect, function (req, res) {
+        console.log("Redirected to " + redirect + " with method " + req.method);
+        res.send({
+            original:   method
+        ,   received:   req.method
+        ,   code:       code
+        ,   ok:         method === req.method
+        });
+    });
+}
+
+for (var i = 0, n = codes.length; i < n; i++) {
+    for (var j = 0, m = methods.length; j < m; j++) {
+        endpoint(codes[i], methods[j]);
+    }
+}
 
 app.listen(3000, function(){
-    console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+    console.log("Express server listening");
 });
